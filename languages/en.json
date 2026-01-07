@@ -1,0 +1,31 @@
+{
+  "header": {
+    "title": "Dev News",
+    "subtitle": "Signals from the builders shaping tomorrow.",
+    "search_placeholder": "Search stories, tags, authors",
+    "user_name": "Alex Rivera",
+    "user_status": "Pro member"
+  },
+  "home_page": {
+    "trending_today": "Trending Today",
+    "trending_subtitle": "Fresh signals from product teams and indie builders.",
+    "back_to_home": "Back to home"
+  },
+  "news_details": {
+    "engagement": "Engagement",
+    "upvotes": "Upvotes",
+    "downvotes": "Downvotes",
+    "views": "Views",
+    "tags": "Tags",
+    "author": "Author",
+    "published_on": "Published on",
+    "research_lead": "Research lead, Aurora Labs"
+  },
+  "not_found": {
+    "page_not_found": "404 - Page Not Found",
+    "resource_not_found": "Could not find the requested resource",
+    "return_home": "Return Home",
+    "news_not_found": "404 - News Not Found",
+    "news_id_not_found": "This News with {slug} id was not found!"
+  }
+}

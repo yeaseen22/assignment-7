@@ -1,82 +1,78 @@
-import { NextResponse } from 'next/server';
-import path from 'path';
-import { promises as fs } from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
+import data from '../../../../public/data.json';
 
-export async function GET(request, { params }) {
+let newsData = [...data]; // Create a mutable copy of the data
+
+export async function GET(req, { params }) {
   const { slug } = params;
-  const filePath = path.join(process.cwd(), 'public', 'data.json');
+  const newsItem = newsData.find((item) => item.slug === slug);
 
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    const data = JSON.parse(fileContents);
-    const newsItem = data.find(item => item.slug === slug);
-
-    if (newsItem) {
-      return NextResponse.json(newsItem);
-    } else {
-      return NextResponse.json({ message: `News with slug "${slug}" not found` }, { status: 404 });
-    }
-  } catch (error) {
-    console.error(`Error processing request for slug ${slug}:`, error);
-    return NextResponse.json({ message: 'Error loading news data' }, { status: 500 });
+  if (newsItem) {
+    return NextResponse.json(newsItem);
+  } else {
+    return new NextResponse(
+      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
+      {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }
 
-export async function PATCH(request, { params }) {
+export async function PATCH(req, { params }) {
   const { slug } = params;
-  const filePath = path.join(process.cwd(), 'public', 'data.json');
+  const body = await req.json();
 
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    let data = JSON.parse(fileContents);
-    const newsIndex = data.findIndex(item => item.slug === slug);
+  const newsIndex = newsData.findIndex((item) => item.slug === slug);
 
-    if (newsIndex === -1) {
-      return NextResponse.json({ message: `News with slug "${slug}" not found` }, { status: 404 });
+  if (newsIndex !== -1) {
+    const allowedFields = ['title', 'description'];
+    const updates = {};
+
+    for (const key in body) {
+      if (allowedFields.includes(key)) {
+        updates[key] = body[key];
+      } else {
+        return new NextResponse(
+          JSON.stringify({
+            message: `Field '${key}' cannot be updated. Only 'title' and 'description' are allowed.`,
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
     }
 
-    const body = await request.json();
-    const { title, description, ...otherFields } = body;
-
-    if (Object.keys(otherFields).length > 0) {
-      return NextResponse.json({ message: 'Only "title" and "description" can be updated.' }, { status: 400 });
-    }
-
-    if (title !== undefined) {
-      data[newsIndex].title = title;
-    }
-    if (description !== undefined) {
-      data[newsIndex].description = description;
-    }
-
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-
-    return NextResponse.json(data[newsIndex]);
-  } catch (error) {
-    console.error(`Error updating news item with slug ${slug}:`, error);
-    return NextResponse.json({ message: 'Error updating news data' }, { status: 500 });
+    newsData[newsIndex] = { ...newsData[newsIndex], ...updates };
+    return NextResponse.json(newsData[newsIndex]);
+  } else {
+    return new NextResponse(
+      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
+      {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(req, { params }) {
   const { slug } = params;
-  const filePath = path.join(process.cwd(), 'public', 'data.json');
+  const initialLength = newsData.length;
+  newsData = newsData.filter((item) => item.slug !== slug);
 
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    let data = JSON.parse(fileContents);
-    const initialLength = data.length;
-    data = data.filter(item => item.slug !== slug);
-
-    if (data.length === initialLength) {
-      return NextResponse.json({ message: `News with slug "${slug}" not found` }, { status: 404 });
-    }
-
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-
-    return NextResponse.json({ message: `News with slug "${slug}" deleted successfully` });
-  } catch (error) {
-    console.error(`Error deleting news item with slug ${slug}:`, error);
-    return NextResponse.json({ message: 'Error deleting news data' }, { status: 500 });
+  if (newsData.length < initialLength) {
+    return new NextResponse(null, { status: 204 }); // No Content
+  } else {
+    return new NextResponse(
+      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
+      {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }

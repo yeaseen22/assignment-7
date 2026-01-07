@@ -1,0 +1,31 @@
+{
+  "header": {
+    "title": "ডেভ নিউজ",
+    "subtitle": "আগামীকালের নির্মাতাদের থেকে সংকেত।",
+    "search_placeholder": "খবর, ট্যাগ, লেখক খুঁজুন",
+    "user_name": "অ্যালেক্স রিভেরা",
+    "user_status": "প্রো সদস্য"
+  },
+  "home_page": {
+    "trending_today": "আজকের ট্রেন্ডিং",
+    "trending_subtitle": "পণ্য দল এবং স্বাধীন নির্মাতাদের থেকে নতুন সংকেত।",
+    "back_to_home": "হোম পেজে ফিরে যান"
+  },
+  "news_details": {
+    "engagement": "এনগেজমেন্ট",
+    "upvotes": "আপভোট",
+    "downvotes": "ডাউনভোট",
+    "views": "ভিউ",
+    "tags": "ট্যাগ",
+    "author": "লেখক",
+    "published_on": "প্রকাশিত হয়েছে",
+    "research_lead": "গবেষণা প্রধান, অরোরা ল্যাবস"
+  },
+  "not_found": {
+    "page_not_found": "404 - পাতা খুঁজে পাওয়া যায়নি",
+    "resource_not_found": "অনুরোধ করা রিসোর্স খুঁজে পাওয়া যায়নি",
+    "return_home": "হোম পেজে ফিরে যান",
+    "news_not_found": "404 - খবর খুঁজে পাওয়া যায়নি",
+    "news_id_not_found": "এই স্ল্যাগ '{slug}' সহ খবরটি খুঁজে পাওয়া যায়নি!"
+  }
+}
