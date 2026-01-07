@@ -1,4 +1,5 @@
-[
+{
+  "news": [
     {
         "id": 1,
         "slug": "the-css-if-function-has-arrived",
@@ -167,4 +168,5 @@
         "views": "70575",
         "thumbnail": "images/devnews1767154482252.webp"
     }
-]
+  ]
+}

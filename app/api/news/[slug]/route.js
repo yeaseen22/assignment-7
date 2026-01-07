@@ -1,78 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server';
-import data from '../../../../public/data.json';
+import fsPromises from 'fs/promises';
+import { NextResponse } from 'next/server';
+import path from 'path';
 
-let newsData = [...data]; // Create a mutable copy of the data
+const dataFilePath = path.join(process.cwd(), 'public/data.json');
 
-export async function GET(req, { params }) {
+export async function GET(request, { params }) {
   const { slug } = params;
-  const newsItem = newsData.find((item) => item.slug === slug);
+  try {
+    const jsonData = await fsPromises.readFile(dataFilePath);
+    const objectData = JSON.parse(jsonData);
+    const newsItem = objectData.news.find(item => item.slug === slug);
 
-  if (newsItem) {
-    return NextResponse.json(newsItem);
-  } else {
-    return new NextResponse(
-      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
-      {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    if (newsItem) {
+      return NextResponse.json(newsItem);
+    } else {
+      return NextResponse.json({ message: `This News with ${slug} id was not found!` }, { status: 404 });
+    }
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Error reading news data' }, { status: 500 });
   }
 }
 
-export async function PATCH(req, { params }) {
+export async function PATCH(request, { params }) {
   const { slug } = params;
-  const body = await req.json();
+  try {
+    const requestBody = await request.json();
+    const { title, description } = requestBody;
 
-  const newsIndex = newsData.findIndex((item) => item.slug === slug);
+    // Check if any invalid fields are being updated
+    const validFields = ['title', 'description'];
+    const requestedFields = Object.keys(requestBody);
+    const invalidFields = requestedFields.filter(field => !validFields.includes(field));
 
-  if (newsIndex !== -1) {
-    const allowedFields = ['title', 'description'];
-    const updates = {};
-
-    for (const key in body) {
-      if (allowedFields.includes(key)) {
-        updates[key] = body[key];
-      } else {
-        return new NextResponse(
-          JSON.stringify({
-            message: `Field '${key}' cannot be updated. Only 'title' and 'description' are allowed.`,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      }
+    if (invalidFields.length > 0) {
+      return NextResponse.json(
+        { message: `Error: Cannot update field(s): ${invalidFields.join(', ')}. Only "title" and "description" can be updated.` },
+        { status: 400 }
+      );
     }
 
-    newsData[newsIndex] = { ...newsData[newsIndex], ...updates };
-    return NextResponse.json(newsData[newsIndex]);
-  } else {
-    return new NextResponse(
-      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
-      {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
+    if (!title && !description) {
+      return NextResponse.json({ message: 'Error: No valid fields provided for update. Only "title" and "description" can be updated.' }, { status: 400 });
+    }
+
+    const jsonData = await fsPromises.readFile(dataFilePath);
+    let objectData = JSON.parse(jsonData);
+    const newsIndex = objectData.news.findIndex(item => item.slug === slug);
+
+    if (newsIndex > -1) {
+      if (title !== undefined) {
+        objectData.news[newsIndex].title = title;
       }
-    );
+      if (description !== undefined) {
+        objectData.news[newsIndex].description = description;
+      }
+
+      await fsPromises.writeFile(dataFilePath, JSON.stringify(objectData, null, 2));
+      return NextResponse.json(objectData.news[newsIndex]);
+    } else {
+      return NextResponse.json({ message: `This News with ${slug} id was not found!` }, { status: 404 });
+    }
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Error updating news data' }, { status: 500 });
   }
 }
 
-export async function DELETE(req, { params }) {
+export async function DELETE(request, { params }) {
   const { slug } = params;
-  const initialLength = newsData.length;
-  newsData = newsData.filter((item) => item.slug !== slug);
+  try {
+    const jsonData = await fsPromises.readFile(dataFilePath);
+    let objectData = JSON.parse(jsonData);
+    const initialLength = objectData.news.length;
+    objectData.news = objectData.news.filter(item => item.slug !== slug);
 
-  if (newsData.length < initialLength) {
-    return new NextResponse(null, { status: 204 }); // No Content
-  } else {
-    return new NextResponse(
-      JSON.stringify({ message: `This News with ${slug} id was not found!` }),
-      {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    if (objectData.news.length < initialLength) {
+      await fsPromises.writeFile(dataFilePath, JSON.stringify(objectData, null, 2));
+      return NextResponse.json({ message: `News with slug "${slug}" deleted successfully.` });
+    } else {
+      return NextResponse.json({ message: `This News with ${slug} id was not found!` }, { status: 404 });
+    }
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Error deleting news data' }, { status: 500 });
   }
 }

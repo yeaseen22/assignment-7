@@ -1,6 +1,6 @@
-import data from '../public/data.json';
 import Image from 'next/image';
 import Link from 'next/link';
+import data from '../public/data.json';
 
 const formatCount = (count) => {
   const num = parseInt(count);
@@ -18,6 +18,7 @@ const formatDate = (dateString) => {
 };
 
 export default function Home() {
+  const newsItems = data.news || data;
   return (
     <div className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
@@ -92,7 +93,7 @@ export default function Home() {
           </div>
 
           <section className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data.map((newsItem) => (
+            {newsItems.map((newsItem) => (
               <div
                 key={newsItem.id}
                 className="rounded-2xl bg-gradient-to-br from-white/15 via-white/5 to-transparent p-[1px] reveal"

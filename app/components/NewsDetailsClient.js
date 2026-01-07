@@ -2,9 +2,11 @@
 
 import NewsNotFound from '@/app/components/news-not-found';
 import { useTranslations } from '@/app/components/TranslationProvider';
-import data from '@/public/data.json';
+import LanguageSwitcher from './LanguageSwitcher';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const formatCount = (count) => {
   const num = parseInt(count);
@@ -22,12 +24,36 @@ const formatDate = (dateString) => {
 };
 
 export default function NewsDetailsClient({ params }) {
-  const newsItem = data.find((item) => item.slug === params.slug);
+  const [newsItem, setNewsItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const t = useTranslations('news_details');
   const th = useTranslations('header');
   const thome = useTranslations('home_page');
 
-  if (!newsItem) {
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const response = await fetch(`/api/news/${params.slug}`);
+        if (!response.ok) {
+          throw new Error('News not found');
+        }
+        const data = await response.json();
+        setNewsItem(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNews();
+  }, [params.slug]);
+
+  if (loading) {
+    return <p>Loading news details...</p>;
+  }
+
+  if (error || !newsItem) {
     return <NewsNotFound slug={params.slug} locale={params.locale} />;
   }
 
@@ -80,7 +106,8 @@ export default function NewsDetailsClient({ params }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
+            <LanguageSwitcher locale={params.locale} />
             <div className="rounded-full bg-white/10 p-[2px]">
               <Image
                 src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=96&h=96&q=80"

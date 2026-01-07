@@ -2,9 +2,11 @@
 
 import NewsNotFound from '@/app/components/news-not-found';
 import Image from 'next/image';
-import data from '@/public/data.json';
-import Link from 'next/link';
+
 import { useTranslations } from '@/app/components/TranslationProvider';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const formatCount = (count) => {
   const num = parseInt(count);
@@ -22,12 +24,36 @@ const formatDate = (dateString) => {
 };
 
 export default function NewsDetailsModalClient({ params }) {
-  const newsItem = data.find((item) => item.slug === params.slug);
+  const [newsItem, setNewsItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const t = useTranslations('news_details');
   const th = useTranslations('header');
   const thome = useTranslations('home_page');
 
-  if (!newsItem) {
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const response = await fetch(`/api/news/${params.slug}`);
+        if (!response.ok) {
+          throw new Error('News not found');
+        }
+        const data = await response.json();
+        setNewsItem(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNews();
+  }, [params.slug]);
+
+  if (loading) {
+    return <p>Loading news details...</p>;
+  }
+
+  if (error || !newsItem) {
     return <NewsNotFound slug={params.slug} locale={params.locale} />;
   }
 
@@ -35,7 +61,8 @@ export default function NewsDetailsModalClient({ params }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
       <div className="relative rounded-2xl bg-gradient-to-br from-white/15 via-white/5 to-transparent p-[1px] w-full max-w-2xl mx-auto my-8">
         <div className="rounded-2xl border border-white/10 bg-[var(--surface)] p-6 shadow-[0_24px_50px_rgba(5,8,16,0.55)]">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center mb-4">
+            <LanguageSwitcher locale={params.locale} />
             <Link href={`/${params.locale}/`} className="text-white hover:text-cyan-300">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
